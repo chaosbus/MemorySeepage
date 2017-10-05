@@ -62,8 +62,8 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-class Exif(db.Model):
-    __tablename__ = 'exif_detail'
+class ExifInfo(db.Model):
+    __tablename__ = 'exif_info'
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True)
@@ -71,3 +71,20 @@ class Exif(db.Model):
     password_hash = db.Column(db.String(128))
     signup_time = db.Column(db.DateTime())
     login_time = db.Column(db.DateTime())
+    photo_file = db.relationship('PhotoFile', backref='exif_info')
+
+
+class PhotoFile(db.Model):
+    __tablename__ = 'photo_file'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True)    # 文件名(md5)
+    # jpg, png, raw, bmp
+    type = db.Column(db.Integer)            # 文件类型
+    store_path = db.Column(db.String(256))  # 存储路径
+    md5 = db.Column(db.String(64), unique=True) # 文件md5码
+    fingerprint = db.Column(db.String(32))  # 图片指纹
+    import_date = db.Column(db.DateTime())  # 导入时间
+    exif_id = db.Column(db.Integer, db.ForeignKey('exif_info.id'))
+
+
