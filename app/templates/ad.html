@@ -1,0 +1,40 @@
+
+	<div class="row clearfix">
+		<div class="col-md-12 column">
+{#            滚动间隔：2s#}
+			<div class="carousel slide" id="carousel-954835" data-ride="carousel" data-interval="2000">
+				<ol class="carousel-indicators">
+{#					<li data-slide-to="0" data-target="#carousel-954835" class="active"></li>#}
+{#					<li data-slide-to="1" data-target="#carousel-954835"></li>#}
+{#					<li data-slide-to="2" data-target="#carousel-954835"></li>#}
+                    {% for i in range(num_cars) %}
+                        {% if i == 0 %}
+					        <li data-slide-to="{{ i }}" data-target="#carousel-954835" class="active"></li>
+                        {% else %}
+                            <li data-slide-to="{{ i }}" data-target="#carousel-954835"></li>
+                        {% endif %}
+                    {%- endfor %}
+				</ol>
+				<div class="carousel-inner">
+                    {% for data in cars_data %}
+                        {% if data['no'] == 0 %}
+                        <div class="item active">
+                        {% else %}
+                        <div class="item">
+                        {% endif %}
+                            <a href="data['href']" target="_blank">
+                                <img alt="" src="{{ url_for() }}"/>
+                            </a>
+                            <div class="carousel-caption">
+                                {% if data['text'] %}
+                                <p>data['text']</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+				</div>
+                <a class="left carousel-control" href="#carousel-954835" data-slide="prev"><span class="glyphicon glyphicon-chevron-left"></span></a>
+                <a class="right carousel-control" href="#carousel-954835" data-slide="next"><span class="glyphicon glyphicon-chevron-right"></span></a>
+			</div>
+		</div>
+	</div>

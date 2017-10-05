@@ -66,11 +66,38 @@ class ExifInfo(db.Model):
     __tablename__ = 'exif_info'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True)
-    email = db.Column(db.String(64), unique=True)
-    password_hash = db.Column(db.String(128))
-    signup_time = db.Column(db.DateTime())
-    login_time = db.Column(db.DateTime())
+
+    # ifd0
+    make = db.Column(db.String(64))             # 制造商
+    model = db.Column(db.String(64))            # 型号
+    orientation = db.Column(db.String(64))      # 方向
+    date_original = db.Column(db.DateTime())    # 拍摄时间
+    x_resolution = db.Column(db.String(4))      # 水平分辨率
+    y_resolution = db.Column(db.String(4))      # 垂直分辨率
+    resolution_unit = db.Column(db.String(64))  # 分辨率单位
+    artist = db.Column(db.String(64))           # 作者
+    copyright = db.Column(db.String(64))        # 版权
+    software = db.Column(db.String(10))         # 软件
+
+    # exif ifd
+    exposure_time = db.Column(db.String(8))     # 曝光时间
+    exposure_program = db.Column(db.String(64)) # 曝光程序
+    exposure_bias = db.Column(db.String(8))     # 曝光补偿
+    exposure_mode = db.Column(db.String(8))     # 曝光模式
+    fnumber = db.Column(db.String(4))           # 光圈
+    sensitivity = db.Column(db.String(6))       # ISO
+    metering_mode = db.Column(db.String(8))     # 测光模式
+    flash = db.Column(db.String(8))             # 闪光灯
+    focal_len = db.Column(db.String(8))         # 焦距
+    white_balance = db.Column(db.String(8))     # 白平衡
+
+    # gps
+    gps_latitude = db.Column(db.String(12))
+    gps_longitude = db.Column(db.String(12))
+    gps_altitude = db.Column(db.String(12))
+    gps_timestamp = db.Column(db.String(12))
+
+    # foreign key
     photo_file = db.relationship('PhotoFile', backref='exif_info')
 
 
