@@ -6,6 +6,7 @@ import json
 import datetime
 import exifread
 import shutil
+from exifread import FIELD_TYPES
 
 TEST_REPO_BASE = 'c:\\Users\\Joe\\Pictures\\base'
 
@@ -296,9 +297,9 @@ class StorePathManager(object):
         self.pendingpath = self.basepath + os.sep + self.__SUB_DIR_PIC_PENDING
 
         if not (self.isdir_ready(self.basepath) and
-                self.isdir_ready(self.storepath) and
-                self.isdir_ready(self.tmppath) and
-                self.isdir_ready(self.pendingpath)):
+                    self.isdir_ready(self.storepath) and
+                    self.isdir_ready(self.tmppath) and
+                    self.isdir_ready(self.pendingpath)):
             pass
 
     # @staticmethod
@@ -353,6 +354,129 @@ class StorePathManager(object):
         shutil.copy(sourcefile, destfile)
 
 
+def correct_exif_info1(func):
+    def warp(*args, **kwargs):
+        info = func(*args, **kwargs)
+        if not info:
+            return info
+
+        for tag in _EXIF_TAG_FRACTION:
+            if tag in info and info.get(tag):
+                info[tag] = fix_exif_fraction(info.get(tag), 2)
+
+        for tag in _EXIF_TAG_GPS_LOC:
+            if tag in info and info.get(tag):
+                info[tag] = fix_exif_gps_loc(info.get(tag))
+
+        for tag in _EXIF_TAG_TIME:
+            if tag in info and info.get(tag):
+                info[tag] = fix_exif_date(info.get(tag))
+
+        for tag in ('Image Copyright',):
+            if tag in info and info.get(tag):
+                info[tag] = info.get(tag)[:-7]
+        return info
+
+    return warp
+
+
+_EXIF_TAG_TYPE_ASCII = ('Image Make', 'Image Model', 'EXIF DateTimeOriginal', 'Image Artist', 'Image Copyright',
+                        'Image Software')
+
+_EXIF_TAG_TYPE_INT = ('Image Orientation', 'Image ResolutionUnit', 'EXIF ExposureProgram', 'EXIF ExposureMode',
+                      'EXIF ExposureMode', 'EXIF ISOSpeedRatings', 'EXIF MeteringMode', 'EXIF Flash',
+                      'EXIF WhiteBalance', 'EXIF ExifImageWidth', 'EXIF ExifImageLength')
+
+_EXIF_TAG_TYPE_RATIO = ('EXIF ExposureTime', 'EXIF FNumber', 'EXIF FocalLength')
+
+_EXIF_TAG_TYPE_RATIO_TO_INT = ('Image XResolution', 'Image YResolution')
+
+_EXIF_TAG_GPS_DATE = ('GPS GPSDate', 'GPS GPSTimeStamp')
+
+
+def math_div_str(numerator, denominator, accuracy=0):
+    if numerator < denominator:
+        return '1/' + str(int(round(denominator / numerator, 0)))
+    else:
+        if not numerator % denominator:
+            accuracy = 0
+        t = round(numerator / denominator, accuracy)
+        return str(int(t)) if accuracy == 0 else str(t)
+
+
+def math_div(numerator, denominator, accuracy=0):
+    t = round(float(numerator) / float(denominator), accuracy)
+    return int(t) if accuracy == 0 else t
+
+
+def fix_exif_gps_loc1(values):
+    """
+    将坐标的度分秒转为10进制的度
+    deg + min/60 + sec/3600
+    :param values:
+    :return:
+    """
+    if isinstance(values, list) and len(values) == 3:
+        deg = values[0]
+        min = values[1]
+        sec = values[2]
+        loc = round(float(math_div(deg.num, deg.den) +
+                    float(math_div(min.num, min.den)) / 60 +
+                    float(math_div(sec.num, sec.den)) / 3600), 6)
+        return loc
+
+
+def get_pic_exif1(filename):
+    """
+    获取文件的exif信息
+    :param filename:文件名
+    :return:全量exif(json string，存储用)，需要使用的exif(格式化的dict)
+    """
+    info = {}
+    try:
+        with open(filename, 'rb') as f:
+            tags = exifread.process_file(f, details=False)
+            if not tags:
+                print 'exifread failed'
+                return None
+
+            tag_keys = list(tags.keys())
+            tag_keys.sort()
+
+            for k in tag_keys:
+                v = tags[k]
+                if k in ['JPEGThumbnail', 'TIFFThumbnail']:
+                    continue
+
+                if k in _EXIF_TAG_TYPE_ASCII and v.field_type == 2:
+                    info[k] = v.values.strip(' ')
+
+                if k in _EXIF_TAG_TYPE_INT and v.field_type in (3, 4):
+                    info[k] = v.values[0] if len(v.values) else -1
+
+                if k in _EXIF_TAG_TYPE_RATIO:
+                    info[k] = math_div_str(v.values[0].num, v.values[0].den, 2)
+
+                if k in _EXIF_TAG_TYPE_RATIO_TO_INT:
+                    info[k] = math_div(v.values[0].num, v.values[0].den)
+
+                if k in _EXIF_TAG_GPS_DATE:
+                    if k == _EXIF_TAG_GPS_DATE[0]:
+                        info['GPS GPSDatetime'] = v.values
+                    elif k == _EXIF_TAG_GPS_DATE[1]:
+                        info['GPS GPSDatetime'] += ' ' + '%.2d:%.2d:%.2d' % (math_div(v.values[0].num, v.values[0].den),
+                                                                             math_div(v.values[1].num, v.values[1].den),
+                                                                             math_div(v.values[2].num, v.values[2].den))
+                if k in _EXIF_TAG_GPS_LOC:
+                    info[k] = fix_exif_gps_loc1(v.values)
+
+    except IOError, e:
+        print 'open failed', e
+
+    # print json.dumps(info)
+    return info
+
+
 if __name__ == '__main__':
     # filename = 'C:\\Users\\Joe\\Pictures\\IMG_20170401_212714.jpg'
     # a = get_pic_detail_info(filename)
@@ -368,6 +492,8 @@ if __name__ == '__main__':
     # path1 = 'C:\\Usersrs\\Joe\\Pictures'
     # scan_path_import_pic(path1)
 
-    spm = StorePathManager('/Users/Joe/Downloads/PIC/REPO')
-    scan_path_import_pic('/Users/Joe/Downloads/PIC/IMP')
+    # spm = StorePathManager('/Users/Joe/Downloads/PIC/REPO')
+    # scan_path_import_pic('/Users/Joe/Downloads/PIC/IMP')
 
+    get_pic_exif1(r'/Users/Joe/Downloads/PIC/DSC_5803.NEF')
+    # get_pic_exif1(r'/Users/Joe/Downloads/PIC/aaa.jpg')

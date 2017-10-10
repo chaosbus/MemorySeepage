@@ -45,7 +45,7 @@ def create_app(config_name):
     nav.init_app(app)
 
     # db
-    # db.init_app(app)
+    db.init_app(app)
 
     # loginManager
     login_manager.init_app(app)
