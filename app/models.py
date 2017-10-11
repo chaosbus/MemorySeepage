@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 from app import login_manager
@@ -85,7 +86,6 @@ class ExifInfo(db.Model):
     img_length = db.Column(db.Integer())        # 图片长度
     img_width = db.Column(db.Integer())         # 图片长度
 
-
     # exif ifd
     exposure_time = db.Column(db.String(8))     # 曝光时间
     exposure_program = db.Column(db.Integer())  # 曝光程序
@@ -109,8 +109,8 @@ class ExifInfo(db.Model):
     gps_direction = db.Column(db.String(8))     # gps朝向
     gps_pos_err = db.Column(db.Integer())       # gps水平定位误差
 
-    # foreign key
-    photo_file = db.relationship('PhotoFile', backref='exif_info')
+    # foreign key。从表
+    photo_id = db.Column(db.Integer, db.ForeignKey('photo_file.id'))
 
 
 class PhotoFile(db.Model):
@@ -118,16 +118,17 @@ class PhotoFile(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True, nullable=False)    # 文件名(md5码，唯一性)
-    postfix = db.Column(db.String(10), nullable=False)  # 文件后缀名
+    postfix = db.Column(db.String(10), nullable=False)      # 文件后缀名
+    store_path = db.Column(db.String(256), nullable=False)  # 存储路径
+
     type = db.Column(db.String(8))                  # 文件类型[jpeg, png, tiff, gif]
-    store_path = db.Column(db.String(256))          # 存储路径
-    # md5 = db.Column(db.String(64), unique=True)     # 文件md5码
+    md5 = db.Column(db.String(32), unique=True)     # 文件md5码
     fingerprint = db.Column(db.String(32))          # 图片指纹
-    import_date = db.Column(db.DateTime())          # 导入时间
+    import_date = db.Column(db.DateTime(), default=datetime.now())  # 导入时间
     modify_date = db.Column(db.DateTime())          # 最近修改时间
 
-    have_exif = db.Column(db.Boolean, nullable=False, default=False)    # 是否包含EXIF
-    exif_id = db.Column(db.Integer, db.ForeignKey('exif_info.id'))
+    exif = db.relationship('ExifInfo', uselist=False, backref='photo_file')
+    # album = db.relationship('PhotoAlbum', backref='photo_file')
 
 
 class PhotoAlbum(db.Model):
