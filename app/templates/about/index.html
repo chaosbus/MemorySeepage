@@ -4,6 +4,38 @@
 
 {% block page_content %}
     <h1>about me</h1>
+
+    <h4>水平标题:</h4>
+    <table border="1">
+        <tr>
+            <th>PhotoFile</th>
+            <th>ImgType</th>
+            <th>Date</th>
+            <th>ExifID</th>
+            <th>Exif Make</th>
+            <th>Exif Model</th>
+            <th>Exif ExposureTime</th>
+            <th>Exif FNumber</th>
+            <th>ISO</th>
+            <th>Exif Exposure Program</th>
+        </tr>
+        {% for entry in photos %}
+            <tr>
+                <td>{{ entry.name }}</td>
+                <td>{{ entry.type|upper }}</td>
+                <td>{{ entry.import_date|datetimeformat('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ entry.exif.id }}</td>
+                <td>{{ entry.exif.make }}</td>
+                <td>{{ entry.exif.model }}</td>
+                <td>{{ entry.exif.exposure_time }}</td>
+                <td>F/{{ entry.exif.fnumber }}</td>
+                <td>{{ entry.exif.sensitivity }}</td>
+                <td>{{ entry.exif.exposure_program|exif_ep }}</td>
+            </tr>
+        {% else %}
+            <h4>no data found</h4>
+        {% endfor %}
+    </table>
 {% endblock %}}
 
 

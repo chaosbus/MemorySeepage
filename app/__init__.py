@@ -6,7 +6,7 @@ from flask_login import LoginManager
 from config import config
 from flask_nav.elements import Navbar, View, Subgroup, Separator
 from flask_nav import Nav
-
+from jinja2_custom_filter import datetimeformat, exif_exposure_program_readable
 
 bootstrap = Bootstrap()
 nav = Nav()
@@ -57,6 +57,10 @@ def create_app(config_name):
     app.register_blueprint(bp_album, url_prefix='/album')
     from .about import bp_about
     app.register_blueprint(bp_about, url_prefix='/about')
+
+    # jinja2 filter
+    app.jinja_env.filters['datetimeformat'] = datetimeformat
+    app.jinja_env.filters['exif_ep'] = exif_exposure_program_readable
 
     return app
 

@@ -112,6 +112,9 @@ class ExifInfo(db.Model):
     # foreign key。从表
     photo_id = db.Column(db.Integer, db.ForeignKey('photo_file.id'))
 
+    def __repr__(self):
+        return '<ExifInfo %r>' % self.id
+
 
 class PhotoFile(db.Model):
     __tablename__ = 'photo_file'
@@ -130,6 +133,9 @@ class PhotoFile(db.Model):
     exif = db.relationship('ExifInfo', uselist=False, backref='photo_file')
     # album = db.relationship('PhotoAlbum', backref='photo_file')
 
+    def __repr__(self):
+        return '<PhotoFile %r>' % self.name
+
 
 class PhotoAlbum(db.Model):
     __tablename__ = 'photo_album'
@@ -138,4 +144,6 @@ class PhotoAlbum(db.Model):
     name = db.Column(db.String(64), unique=True)    # 图片集名
     desc = db.Column(db.String(512), unique=True)   # 图片集描述
 
+    def __repr__(self):
+        return '<PhotoAlbum %r>' % self.name
 

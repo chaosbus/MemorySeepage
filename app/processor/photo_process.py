@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import os
 import hashlib
-import json
+# import json
 from datetime import datetime
 import imghdr
 import exifread
+from ..models import PhotoFile, ExifInfo
 
 
 def md5sum_string(string):
@@ -216,65 +217,20 @@ def get_pic_detail_info(filename):
     """
     获取文件所有信息：exif，md5
     :param filename:
-    :return: 字典格式:{'exif': {...}, 'md5': 'xxxxxx'}
+    :return: 字典格式 {'exif': {...}, 'file': {...}}
     """
     return {'exif': get_pic_exif(filename),
             'file': {'md5': md5sum_file(filename),
                      'imgtype': detect_image_type(filename),
-                     'postfix': get_file_postfix(os.path.splitext(os.path.basename(filename))[1])}}
-
-
-from app.models import ExifInfo, PhotoFile
-
-
-def insert_photo_file(info):
-    record = PhotoFile(name=info.get('md5'),
-                       postfix=info.get('postfix'),
-                       type=info.get('imgtype'),
-                       md5=info.get('md5'),
-                       store_path=info.get('md5'),  # FIXME
-                       fingerprint=info.get('NULL')
-                       # import_date=datetime.now(),
-                       # modify_date=datetime.now()
-                       )
-    return record
-
-
-def insert_exif_info(info):
-    record = ExifInfo(make=info.get('Image Make'),
-                      model=info.get('Image Model'),
-                      orientation=info.get('Image Orientation'),
-                      date_original=info.get('EXIF DateTimeOriginal'),
-                      x_resolution=info.get('Image XResolution'),
-                      y_resolution=info.get('Image YResolution'),
-                      resolution_unit=info.get('Image ResolutionUnit'),
-                      artist=info.get('Image Artist'),
-                      copyright=info.get('Image Copyright'),
-                      software=info.get('Image Software'),
-                      img_length=info.get('EXIF ExifImageLength'),
-                      img_width=info.get('EXIF ExifImageWidth'),
-                      exposure_time=info.get('EXIF ExposureTime'),
-                      exposure_program=info.get('EXIF ExposureProgram'),
-                      exposure_bias=info.get('EXIF ExposureBiasValue'),
-                      exposure_mode=info.get('EXIF ExposureMode'),
-                      fnumber=info.get('EXIF FNumber'),
-                      sensitivity=info.get('EXIF ISOSpeedRatings'),
-                      metering_mode=info.get('EXIF MeteringMode'),
-                      flash=info.get('EXIF Flash'),
-                      focal_len=info.get('EXIF FocalLength'),
-                      white_balance=info.get('EXIF WhiteBalance'),
-                      gps_latitude_ref=info.get('GPS GPSLatitudeRef'),
-                      gps_latitude=info.get('GPS GPSLatitude'),
-                      gps_longitude_ref=info.get('GPS GPSLongitudeRef'),
-                      gps_longitude=info.get('GPS GPSLongitude'),
-                      gps_altitude=info.get('GPS GPSAltitude'),
-                      gps_datetime=info.get('GPS GPSDatetime'),
-                      gps_direction=info.get(''),
-                      gps_pos_err=info.get(''))
-    return record
+                     'postfix': get_file_postfix(os.path.splitext(os.path.basename(filename))[1][1:]).upper()}}
 
 
 def add_new_photo(info):
+    """
+    创建图片信息记录（主表）
+    :param info:
+    :return:
+    """
     info_file = info.get('file')
     info_exif = info.get('exif')
 
@@ -295,6 +251,11 @@ def add_new_photo(info):
 
 
 def add_new_exif(info):
+    """
+    创建exif记录（从表）
+    :param info:
+    :return:
+    """
     return ExifInfo(make=info.get('Image Make'),
                     model=info.get('Image Model'),
                     orientation=info.get('Image Orientation'),
@@ -330,10 +291,12 @@ def add_new_exif(info):
 if __name__ == '__main__':
     p1 = r'/Users/Joe/Downloads/PIC/aaa.jpg'
     p2 = r'/Users/Joe/Downloads/PIC/DSC_5803.NEF'
-    p3 = r'C:\Users\Joe\Downloads\IMG_20170416_104328.jpg'
-    p4 = r'C:\Users\Joe\Pictures\DSC_5519.NEF'
-    p5 = r'C:\Users\Joe\Pictures\DSC_4895.jpg'
+    # p3 = r'C:\Users\Joe\Downloads\IMG_20170416_104328.jpg'
+    # p4 = r'C:\Users\Joe\Pictures\DSC_5519.NEF'
+    # p5 = r'C:\Users\Joe\Pictures\DSC_4895.jpg'
     # get_pic_exif(p1)
     # get_pic_exif(p2)
-    print get_pic_detail_info(p5)
+    # print get_pic_detail_info(p5)
     # print get_pic_detail_info(p2)
+
+
