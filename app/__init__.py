@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 from flask import Flask
 from flask_bootstrap import Bootstrap
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from config import config
-from flask_nav.elements import Navbar, View, Subgroup, Separator
 from flask_nav import Nav
-from jinja2_custom_filter import datetimeformat, exif_exposure_program_readable
+from flask_nav.elements import Navbar, View, Subgroup, Separator
+from flask_sqlalchemy import SQLAlchemy
+from config import config
 
 bootstrap = Bootstrap()
 nav = Nav()
@@ -29,12 +28,7 @@ def create_app(config_name):
     nav.register_element('top', Navbar(u'MemSeep',
                                        View(u'主页', 'main.index'),
                                        View(u'影集', 'album.index'),
-                                       View(u'寻', 'album.index'),
-                                       Subgroup(u'XX',
-                                                View(u'项目一', 'album.index'),
-                                                Separator(),
-                                                View(u'项目二', 'album.index'),
-                                                ),
+                                       View(u'导入', 'importer.index'),
                                        Subgroup(u'备忘',
                                                 View(u'项目一', 'album.index'),
                                                 Separator(),
@@ -57,10 +51,12 @@ def create_app(config_name):
     app.register_blueprint(bp_album, url_prefix='/album')
     from .about import bp_about
     app.register_blueprint(bp_about, url_prefix='/about')
+    from .file_imp import bp_imp
+    app.register_blueprint(bp_imp, url_prefix='/import')
 
     # jinja2 filter
-    app.jinja_env.filters['datetimeformat'] = datetimeformat
-    app.jinja_env.filters['exif_ep'] = exif_exposure_program_readable
+    from .tools import jinja2_custom_filter
+    jinja2_custom_filter.init_app(app)
 
     return app
 

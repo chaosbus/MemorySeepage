@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
+import fnmatch
 import hashlib
-# import json
 from datetime import datetime
 import imghdr
 import exifread
-from ..models import PhotoFile, ExifInfo
 
 
 def md5sum_string(string):
@@ -95,7 +94,7 @@ def fix_exif_gps_loc(values):
         sec = values[2]
         loc = round(float(math_div(deg.num, deg.den) +
                           float(math_div(min.num, min.den)) / 60 +
-                          float(math_div(sec.num, sec.den)) / 3600), 6)
+                          float(math_div(sec.num, sec.den)) / 3600), 9)
         return loc
 
 
@@ -105,6 +104,7 @@ def fix_exif_date(value):
     :param value:
     :return:
     """
+    # FIXME 严格应该做正则判断
     if len(value) != 19:
         print 'not format [%Y:%m:%d %H:%M:%S]'
         return None
@@ -222,73 +222,39 @@ def get_pic_detail_info(filename):
     return {'exif': get_pic_exif(filename),
             'file': {'md5': md5sum_file(filename),
                      'imgtype': detect_image_type(filename),
-                     'postfix': get_file_postfix(os.path.splitext(os.path.basename(filename))[1][1:]).upper()}}
+                     'postfix': get_file_postfix(os.path.splitext(os.path.basename(filename))[1][1:]).upper(),
+                     'size': os.path.getsize(filename)
+                     }
+            }
 
 
-def add_new_photo(info):
+def find_files(root, patterns='*', folder_on_find=False):
     """
-    创建图片信息记录（主表）
-    :param info:
+    查询文件
+    :param root: 根路径
+    :param patterns: 正则匹配，多条件用';'分隔。如'*.jpg;*.gif;*.png'
+    :param folder_on_find: 是否对目录匹配
     :return:
     """
-    info_file = info.get('file')
-    info_exif = info.get('exif')
+    patterns = patterns.split(';')
 
-    record = PhotoFile(name=info_file.get('md5'),
-                       postfix=info_file.get('postfix'),
-                       type=info_file.get('imgtype'),
-                       md5=info_file.get('md5'),
-                       store_path=info_file.get('md5'), # FIXME 临时
-                       fingerprint=info_file.get('NULL')
-                       # import_date=datetime.now(),
-                       # modify_date=datetime.now()
-                       )
+    for path, subdirs, files in os.walk(root):
+        if folder_on_find:
+            files.extend(subdirs)
+        files.sort()
 
-    if info_exif:
-        record.exif = add_new_exif(info_exif)
-
-    return record
-
-
-def add_new_exif(info):
-    """
-    创建exif记录（从表）
-    :param info:
-    :return:
-    """
-    return ExifInfo(make=info.get('Image Make'),
-                    model=info.get('Image Model'),
-                    orientation=info.get('Image Orientation'),
-                    date_original=info.get('EXIF DateTimeOriginal'),
-                    x_resolution=info.get('Image XResolution'),
-                    y_resolution=info.get('Image YResolution'),
-                    resolution_unit=info.get('Image ResolutionUnit'),
-                    artist=info.get('Image Artist'),
-                    copyright=info.get('Image Copyright'),
-                    software=info.get('Image Software'),
-                    img_length=info.get('EXIF ExifImageLength'),
-                    img_width=info.get('EXIF ExifImageWidth'),
-                    exposure_time=info.get('EXIF ExposureTime'),
-                    exposure_program=info.get('EXIF ExposureProgram'),
-                    exposure_bias=info.get('EXIF ExposureBiasValue'),
-                    exposure_mode=info.get('EXIF ExposureMode'),
-                    fnumber=info.get('EXIF FNumber'),
-                    sensitivity=info.get('EXIF ISOSpeedRatings'),
-                    metering_mode=info.get('EXIF MeteringMode'),
-                    flash=info.get('EXIF Flash'),
-                    focal_len=info.get('EXIF FocalLength'),
-                    white_balance=info.get('EXIF WhiteBalance'),
-                    gps_latitude_ref=info.get('GPS GPSLatitudeRef'),
-                    gps_latitude=info.get('GPS GPSLatitude'),
-                    gps_longitude_ref=info.get('GPS GPSLongitudeRef'),
-                    gps_longitude=info.get('GPS GPSLongitude'),
-                    gps_altitude=info.get('GPS GPSAltitude'),
-                    gps_datetime=info.get('GPS GPSDatetime'),
-                    gps_direction=info.get(''),
-                    gps_pos_err=info.get(''))
+        for name in files:
+            for pattern in patterns:
+                if fnmatch.fnmatch(name.upper(), pattern.upper()):
+                    yield os.path.join(path, name)
+                    break
 
 
 if __name__ == '__main__':
+    y = find_files(r'C:\Users\Joe\svn_workspace\dhmp_if\HOME_NGX\nginx\conf', '*.lua')
+    for x in y:
+        print x
+
     p1 = r'/Users/Joe/Downloads/PIC/aaa.jpg'
     p2 = r'/Users/Joe/Downloads/PIC/DSC_5803.NEF'
     # p3 = r'C:\Users\Joe\Downloads\IMG_20170416_104328.jpg'
