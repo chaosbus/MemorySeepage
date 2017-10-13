@@ -5,6 +5,6 @@ from ..models import PhotoFile, ExifInfo
 
 @bp_about.route('/')
 def index():
-    a = PhotoFile.query.order_by(PhotoFile.type).all()
+    a = PhotoFile.query.order_by(PhotoFile.size).all()
     return render_template('about/index.html', photos=a)
 

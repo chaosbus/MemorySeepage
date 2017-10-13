@@ -5,7 +5,7 @@ from .. import db
 
 
 def foo():
-    fs = find_files(r'C:\Users\Joe\Pictures', '*.jpg;*.nef;*.cr2')
+    fs = find_files(r'/Users/Joe/PIC', '*.jpg;*.nef;*.cr2')
     for f in fs:
         print f
         i = get_pic_detail_info(f)

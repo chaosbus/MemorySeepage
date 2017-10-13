@@ -89,7 +89,7 @@ class ExifInfo(db.Model):
     # exif ifd
     exposure_time = db.Column(db.String(8))     # 曝光时间
     exposure_program = db.Column(db.Integer())  # 曝光程序
-    exposure_bias = db.Column(db.Integer())     # 曝光补偿
+    exposure_bias = db.Column(db.String(6))     # 曝光补偿
     exposure_mode = db.Column(db.Integer())     # 曝光模式
     fnumber = db.Column(db.String(6))           # 光圈
     sensitivity = db.Column(db.Integer())       # ISO
@@ -121,20 +121,23 @@ class PhotoFile(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True, nullable=False)    # 文件名(md5码，唯一性)
-    postfix = db.Column(db.String(10), nullable=False)      # 文件后缀名
-    store_path = db.Column(db.String(256), nullable=False)  # 存储路径
+    postfix = db.Column(db.String(8), nullable=False)               # 文件后缀名（导出文件用）
+    size = db.Column(db.Integer())                                  # 文件大小byte
+    store_path = db.Column(db.String(256), nullable=False)          # 存储路径
 
-    type = db.Column(db.String(8))                  # 文件类型[jpeg, png, tiff, gif]
-    md5 = db.Column(db.String(32), unique=True)     # 文件md5码
-    fingerprint = db.Column(db.String(32))          # 图片指纹
+    type = db.Column(db.String(8))                                  # 文件真实类型[jpeg, png, tiff, gif]
+    md5 = db.Column(db.String(32), unique=True)                     # 文件md5码
+    fingerprint = db.Column(db.String(32))                          # 图片指纹
     import_date = db.Column(db.DateTime(), default=datetime.now())  # 导入时间
-    modify_date = db.Column(db.DateTime())          # 最近修改时间
+    modify_date = db.Column(db.DateTime())                          # 最近修改时间
 
-    exif = db.relationship('ExifInfo', uselist=False, backref='photo_file')
+    # description = db.Column(db.Text())                              # 描述
+
+    exif = db.relationship('ExifInfo', uselist=False, backref='photo_file')  #, cascade='save-update, delete')
     # album = db.relationship('PhotoAlbum', backref='photo_file')
 
     def __repr__(self):
-        return '<PhotoFile %r>' % self.name
+        return '<PhotoFile %r.%r>' % (self.name, self.postfix)
 
 
 class PhotoAlbum(db.Model):

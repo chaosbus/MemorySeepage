@@ -48,17 +48,20 @@ def detect_image_type(filename):
     return imghdr.what(filename)
 
 
-def math_div_str(numerator, denominator, accuracy=0):
+def math_div_str(numerator, denominator, accuracy=0, no_div=False):
     """
     除法
-    :param numerator:
-    :param denominator:
-    :param accuracy:
+    :param numerator: 分子
+    :param denominator: 分母
+    :param accuracy: 小数点精度
+    :param no_div: 是否需要除。如3/5，True为3/5，False为1/1.6
     :return:
     """
     if denominator == 0 or numerator == 0:
         return 0
     if abs(numerator) < abs(denominator):
+        if no_div:
+            return '%d/%d' % (numerator, denominator)
         return '1/' + str(int(round(denominator / numerator, 0)))
     else:
         if not numerator % denominator:
@@ -163,7 +166,8 @@ def correct_exif_info(func):
                 info[k] = v.values[0] if len(v.values) else -99
 
             if k in _EXIF_TAG_TYPE_RATIO and v.field_type in (5, 10):
-                info[k] = math_div_str(v.values[0].num, v.values[0].den, 0 if k in ("EXIF FocalLength",) else 2)
+                info[k] = math_div_str(v.values[0].num, v.values[0].den, 0 if k in ("EXIF FocalLength",) else 2,
+                                       True if k in ('EXIF ExposureBiasValue',) else False)
 
             if k in _EXIF_TAG_TYPE_RATIO_TO_INT and v.field_type in (5, 10):
                 info[k] = math_div(v.values[0].num, v.values[0].den)
