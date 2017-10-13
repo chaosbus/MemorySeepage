@@ -1,0 +1,238 @@
+{% macro exif_table(info) %}
+    <h2>{{ info }}</h2>
+{% endmacro %}
+
+
+{% macro var_printable(var) %}
+    {% if var %}
+        {{ var }}
+    {% else %}
+    {% endif %}
+{% endmacro %}
+
+
+{% macro exposure_bias_printable(var) %}
+    {% if var %}
+        {% if var[0] != '-' and var != '0' %}
+            +{{ var }} EV
+        {% elif var == '0' %}
+            ±{{ var }} EV
+        {% else %}
+            {{ var }} EV
+        {% endif %}
+    {% else %}
+{#        UNDEF#}
+    {% endif %}
+{% endmacro %}
+
+
+{% macro white_balance_printable(var) %}
+    {% if var == 0 %}
+        自动白平衡
+    {% elif var == 1 %}
+        手动白平衡
+    {% else %}
+{#        UNDEF#}
+    {% endif %}
+{% endmacro %}
+
+
+{% macro orientation_printable(var) %}
+    {% if var == 1 %}
+        正常
+    {% elif var == 2 %}
+        水平翻转
+    {% elif var == 3 %}
+        旋转180°
+    {% elif var == 4 %}
+        垂直翻转
+    {% elif var == 5 %}
+        水平翻转90°
+    {% elif var == 6 %}
+        顺时针90°
+    {% elif var == 7 %}
+        垂直翻转90°
+    {% elif var == 8 %}
+        逆时针90°
+    {% else %}
+{#        UNDEF#}
+    {% endif %}
+{% endmacro %}
+
+
+{% macro exposure_program_printable(var) %}
+    {% if var == 0 %}
+        未定义
+    {% elif var == 1 %}
+        手动
+    {% elif var == 2 %}
+        自动（程序曝光）
+    {% elif var == 3 %}
+        光圈优化
+    {% elif var == 4 %}
+        快门优先
+    {% elif var == 5 %}
+        创意
+    {% elif var == 6 %}
+        动作
+    {% elif var == 7 %}
+        肖像模式
+    {% elif var == 8 %}
+        风景模式
+    {% else %}
+{#        UNDEF#}
+    {% endif %}
+{% endmacro %}
+
+
+{#0 = Auto exposure#}
+{#1 = Manual exposure#}
+{#2 = Auto bracket#}
+{% macro exposure_mode_printable(var) %}
+    {% if var == 0 %}
+        自动曝光
+    {% elif var == 1 %}
+        手动曝光
+    {% elif var == 2 %}
+        自动包围曝光
+    {% else %}
+{#        UNDEF#}
+    {% endif %}
+{% endmacro %}
+
+
+{#0 = Unknown#}
+{#1 = Average#}
+{#2 = CenterWeightedAverage#}
+{#3 = Spot#}
+{#4 = MultiSpot#}
+{#5 = Pattern#}
+{#6 = Partial#}
+{#255 = other#}
+{% macro metering_mode_printable(var) %}
+    {% if var == 0 %}
+        unknow
+    {% elif var == 1 %}
+        平均测光
+    {% elif var == 2 %}
+        中央重点测光
+    {% elif var == 3 %}
+        点测光
+    {% elif var == 4 %}
+        多点测光
+    {% elif var == 5 %}
+        矩阵测光
+    {% elif var == 6 %}
+        部分测光
+    {% elif var == 255 %}
+        其它
+    {% else %}
+{#        UNDEF#}
+    {% endif %}
+{% endmacro %}
+
+
+{% macro fnumber_printable(var) %}
+    {% if var %}
+        F/{{ var }}
+    {% else %}
+    {% endif %}
+{% endmacro %}
+
+
+{% macro focal_len_printable(var) %}
+    {% if var %}
+        {{ var }}mm
+    {% else %}
+    {% endif %}
+{% endmacro %}
+
+
+{% macro image_size_correct(orientation, length, width) %}
+    {% if length and width %}
+        {% if orientation in [5, 6, 7, 8] %}
+            {{ length }} x {{ width }}
+        {% else %}
+            {{ width }} x {{ length }}
+        {% endif %}
+    {% else %}
+    {% endif %}
+{% endmacro %}
+
+
+{% macro resolution_unit_printable(var) %}
+    {% if var == 1 %}
+{#        无单位#}
+    {% elif var == 2 %}
+        英寸
+    {% elif var == 3 %}
+        厘米
+    {% else %}
+{#        UNDEF#}
+    {% endif %}
+{% endmacro %}
+
+
+{% macro exif_tables(photos) %}
+    <div class="table-responsive">
+    <table class="table table-hover">
+        <caption>基本的表格布局</caption>
+        <thead>
+            <tr>
+{#                <th>MD5</th>#}
+                <th>类型</th>
+                <th>大小</th>
+{#                <th>导入时间</th>#}
+{#                <th>ExifID</th>#}
+{#                <th>设备厂商</th>#}
+                <th>设备型号</th>
+                <th>拍摄时间</th>
+                <th>尺寸</th>
+                <th>曝光时间</th>
+                <th>曝光程序</th>
+                <th>曝光补偿</th>
+                <th>曝光模式</th>
+                <th>光圈</th>
+                <th>ISO</th>
+                <th>测光模式</th>
+                <th>焦距</th>
+                <th>白平衡</th>
+                <th>分辨率</th>
+                <th>方向</th>
+
+            </tr>
+        </thead>
+        <tbody>
+        {% for entry in photos %}
+            <tr>
+{#                <td>{{ entry.name }}</td>#}
+                <td>{{ entry.type|upper }}</td>
+                <td>{{ entry.size|byte_unit }}</td>
+{#                <td>{{ entry.import_date|datetimeformat('%Y-%m-%d %H:%M:%S') }}</td>#}
+{#                <td>{{ entry.exif.id }}</td>#}
+{#                {% if entry.exif %}#}
+{#                <td>{{ var_printable(entry.exif.make) }}</td>#}
+                <td>{{ var_printable(entry.exif.model) }}</td>
+                <td>{{ entry.exif.date_original|datetimeformat('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ image_size_correct(entry.exif.orientation, entry.exif.img_length, entry.exif.img_width) }}</td>
+                <td>{{ var_printable(entry.exif.exposure_time) }}</td>
+                <td>{{ exposure_program_printable(entry.exif.exposure_program) }}</td>
+                <td>{{ exposure_bias_printable(entry.exif.exposure_bias) }}</td>
+                <td>{{ exposure_mode_printable(entry.exif.exposure_mode) }}</td>
+                <td>{{ fnumber_printable(entry.exif.fnumber) }}</td>
+                <td>{{ var_printable(entry.exif.sensitivity) }}</td>
+                <td>{{ metering_mode_printable(entry.exif.metering_mode) }}</td>
+                <td>{{ focal_len_printable(entry.exif.focal_len) }}</td>
+                <td>{{ white_balance_printable(entry.exif.white_balance) }}</td>
+                <td>{% if entry.exif.x_resolution and entry.exif.y_resolution %}{{ entry.exif.x_resolution }} x {{ entry.exif.y_resolution }} {{ resolution_unit_printable(entry.exif.resolution_unit) }}{% endif %}</td>
+                <td>{{ orientation_printable(entry.exif.orientation) }}</td>
+            </tr>
+        {% else %}
+            <h4>no data found</h4>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+{% endmacro %}
+
+
