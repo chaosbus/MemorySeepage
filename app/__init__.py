@@ -6,6 +6,7 @@ from flask_nav import Nav
 from flask_nav.elements import Navbar, View, Subgroup, Separator
 from flask_sqlalchemy import SQLAlchemy
 from config import config
+from file_manager import PhotoFileManager
 
 bootstrap = Bootstrap()
 nav = Nav()
@@ -13,6 +14,7 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'
+pfm = PhotoFileManager()
 
 
 def create_app(config_name):
@@ -57,6 +59,10 @@ def create_app(config_name):
     # jinja2 filter
     from .tools import jinja2_custom_filter
     jinja2_custom_filter.init_app(app)
+
+    pfm.init_app(app)
+
+    app.add_url_rule('/db/<path:filename>', endpoint='database', build_only=True)
 
     return app
 

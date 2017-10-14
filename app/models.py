@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import db
-from app import login_manager
+from . import db
+from . import login_manager
 
 
 class Role(db.Model):
@@ -120,7 +120,7 @@ class PhotoFile(db.Model):
     __tablename__ = 'photo_file'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True, nullable=False)    # 文件名(md5码，唯一性)
+    name = db.Column(db.String(64), nullable=False)                 # 文件名(md5码，唯一性)
     postfix = db.Column(db.String(8), nullable=False)               # 文件后缀名（导出文件用）
     size = db.Column(db.Integer())                                  # 文件大小byte
     store_path = db.Column(db.String(256), nullable=False)          # 存储路径

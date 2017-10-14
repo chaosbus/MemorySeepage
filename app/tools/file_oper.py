@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 import os
+import shutil
 import fnmatch
 import hashlib
 from datetime import datetime
+import PIL
+from PIL import Image
 import imghdr
 import exifread
 
@@ -252,6 +255,41 @@ def find_files(root, patterns='*', folder_on_find=False):
                 if fnmatch.fnmatch(name.upper(), pattern.upper()):
                     yield os.path.join(path, name)
                     break
+
+
+def create_thumb_photo(src_filename, dst_filename='', base_size=300, base_on_width=True, self_adopter=False, quality=100):
+    """
+    图片裁剪
+    :param src_filename: 文件名，物理路径
+    :param dst_filename: 文件名，物理路径
+    :param base_size: 裁剪尺寸
+    :param base_on_width: 默认以宽为准。False以长为准
+    :param self_adopter: 自适应。以长/宽中最短的基于base_size裁剪
+    :return:
+    """
+
+    img = Image.open(src_filename)
+    width = img.size[0]
+    length = img.size[1]
+
+    ratio = float(width) / float(length)
+    print 'I :', width, ' / ', length, ' = ', float(width) / length
+
+    if self_adopter:
+        shortter = width < length
+        if base_on_width:
+            e_width = base_size if shortter else int(round(base_size * ratio))
+        else:
+            e_width = int(round(base_size * ratio)) if shortter else base_size
+    else:
+        e_width = base_size if base_on_width else int(round(base_size * ratio))
+
+    e_length = int(round(e_width / ratio))
+    print 'II:', e_width, ' / ', e_length, ' = ', float(e_width) / e_length
+    print '='*20
+
+    img1 = img.resize((e_width, e_length), PIL.Image.ANTIALIAS)
+    img1.save(dst_filename, quality=quality)
 
 
 if __name__ == '__main__':

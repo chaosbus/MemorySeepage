@@ -17,7 +17,7 @@ def add_new_photo(info):
                        type=info_file.get('imgtype').upper(),
                        size=info_file.get('size'),
                        md5=info_file.get('md5'),
-                       store_path=info_file.get('md5'),     # FIXME 临时
+                       store_path=info_file.get('md5')[:2],     # FIXME 临时
                        fingerprint=info_file.get('NULL'),
                        # modify_date=datetime.now()
                        import_date=datetime.now()
